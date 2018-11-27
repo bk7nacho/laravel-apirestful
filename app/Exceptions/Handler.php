@@ -66,6 +66,9 @@ class Handler extends ExceptionHandler
         }
 
         if ($exception instanceof AuthenticationException){
+            if ($request->expectsJson()){
+                return $this->errorResponse($exception->getMessage(), 401);
+            }
             return $this->unauthenticated($request,$exception);
         }
 
@@ -92,6 +95,8 @@ class Handler extends ExceptionHandler
                 return $this->errorResponse('No se puede eliminar de forma permanente el recurso porque esta relacionado con algun otro.', 409);
             }
         }
+
+
 
         if (config('app.debug')){
             return parent::render($request,$exception);
