@@ -19,6 +19,11 @@ class GradoEstudioController extends ApiController
         return $this->showAll($gradoestudios);
     }
 
+    public function ListarSinPaginar(){
+        $gradoestudio = Gradoestudio::all();
+        return $this->showAllwithouPaginate($gradoestudio);
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -27,7 +32,15 @@ class GradoEstudioController extends ApiController
      */
     public function store(Request $request)
     {
-        //
+        $rules = [
+            'nombre' => 'required'
+        ];
+
+        $this->validate($request, $rules);
+
+        $gradoestudio = Gradoestudio::create($request->all());
+
+        return $this->showOne($gradoestudio);
     }
 
     /**
@@ -36,10 +49,9 @@ class GradoEstudioController extends ApiController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Gradoestudio $gradoestudio)
     {
-        $gradoestudios = Gradoestudio::findOrFail($id);
-        return $this->showOne($gradoestudios);
+        return $this->showOne($gradoestudio);
     }
 
     /**
@@ -49,9 +61,20 @@ class GradoEstudioController extends ApiController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Gradoestudio $gradoestudio)
     {
-        //
+        $gradoestudio->fill($request->only([
+            'nombre',
+            'descripcion',
+        ]));
+
+        if ($gradoestudio->isClean()) {
+            return $this->errorResponse('Debe especificar al menos un valor diferente para actualizar', 422);
+        }
+
+        $gradoestudio->save();
+
+        return $this->showOne($gradoestudio);
     }
 
     /**
@@ -60,8 +83,9 @@ class GradoEstudioController extends ApiController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Gradoestudio $gradoestudio)
     {
-        //
+        $gradoestudio->delete();
+        return $this->showOne($gradoestudio);
     }
 }

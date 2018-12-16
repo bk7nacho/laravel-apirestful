@@ -2,41 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends ApiController
 {
-//    public function signup(Request $request)
-//    {
-//        $request->validate([
-//            'name'     => 'required|string',
-//            'email'    => 'required|string|email|unique:users',
-//            'password' => 'required|string|confirmed',
-//        ]);
-//        $user = new User([
-//            'name'     => $request->name,
-//            'email'    => $request->email,
-//            'password' => bcrypt($request->password),
-//        ]);
-//        $user->save();
-//
-//        return $this->showOne($user,201);
-//    }
-
     public function login(Request $request)
     {
         $request->validate([
-            'email'       => 'required|string|email',
+            'usuario'       => 'required|string',
             'password'    => 'required|string',
             'remember_me' => 'boolean',
         ]);
-        $credentials = request(['email', 'password']);
+        $credentials = request(['usuario', 'password']);
         if (!Auth::attempt($credentials)) {
-            return response()->json([
-                'message' => 'Unauthorized'], 401);
+            return $this->errorResponse('Error de Credenciales', 401);
         }
         $user = $request->user();
         $tokenResult = $user->createToken('Personal Access Token');
@@ -45,7 +26,12 @@ class AuthController extends ApiController
             $token->expires_at = Carbon::now()->addWeeks(1);
         }
         $token->save();
+
+        $persona = ''; //Por implementar
+
         return response()->json([
+            'usuario' => $user,
+            'persona' => $persona,
             'access_token' => $tokenResult->accessToken,
             'token_type'   => 'Bearer',
             'expires_at'   => Carbon::parse(
@@ -57,12 +43,11 @@ class AuthController extends ApiController
     public function logout(Request $request)
     {
         $request->user()->token()->revoke();
-        return response()->json(['message' =>
-            'Successfully logged out']);
+        return $this->showMessage('Logout exitoso!', 200);
     }
 
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        return $this->showOne($request->user());
     }
 }

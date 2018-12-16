@@ -17,6 +17,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class Handler extends ExceptionHandler
 {
     use ApiResponser;
+
     /**
      * A list of the exception types that are not reported.
      *
@@ -62,12 +63,12 @@ class Handler extends ExceptionHandler
 
         if ($exception instanceof ModelNotFoundException){
             $modelo = strtolower(class_basename($exception->getModel()));
-            return $this->errorResponse("No existe ninguna instancia de $modelo con el id especificado", 404);
+            return $this->errorResponse("No existe ninguna instancia de $modelo con el key especificado", 404);
         }
 
         if ($exception instanceof AuthenticationException){
             if ($request->expectsJson()){
-                return $this->errorResponse($exception->getMessage(), 401);
+                return $this->errorResponse('No Autorizado', 401);
             }
             return $this->unauthenticated($request,$exception);
         }
@@ -96,11 +97,20 @@ class Handler extends ExceptionHandler
             }
         }
 
+        if ($exception instanceof QueryException){
+            $codigo = $exception->errorInfo[0];
+
+            if ($codigo == 23000){
+                return $this->errorResponse('No se puede crear un recurso ya creado. Por favor revisar que no exista', 500);
+            }
+        }
 
 
         if (config('app.debug')){
             return parent::render($request,$exception);
         }
+
+        dd($exception);
 
         return $this->errorResponse('Falla inesperada. Intente luego',500);
 

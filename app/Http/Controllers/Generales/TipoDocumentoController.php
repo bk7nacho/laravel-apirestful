@@ -19,6 +19,11 @@ class TipoDocumentoController extends ApiController
         return $this->showAll($tipodoc);
     }
 
+    public function ListarSinPaginar(){
+        $tipodoc = Tipodocumento::all();
+        return $this->showAllwithouPaginate($tipodoc);
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -27,9 +32,15 @@ class TipoDocumentoController extends ApiController
      */
     public function store(Request $request)
     {
-        $campos = $request->all();
-        $model =Tipodocumento::create($campos);
-        return $this->showOne($model);
+        $rules = [
+            'nombre' => 'required'
+        ];
+
+        $this->validate($request, $rules);
+
+        $tipodocumento = Tipodocumento::create($request->all());
+
+        return $this->showOne($tipodocumento);
     }
 
     /**
@@ -50,9 +61,20 @@ class TipoDocumentoController extends ApiController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Tipodocumento $tipodocumento)
     {
-        //
+        $tipodocumento->fill($request->only([
+            'nombre',
+            'descripcion',
+        ]));
+
+        if ($tipodocumento->isClean()) {
+            return $this->errorResponse('Debe especificar al menos un valor diferente para actualizar', 422);
+        }
+
+        $tipodocumento->save();
+
+        return $this->showOne($tipodocumento);
     }
 
     /**
